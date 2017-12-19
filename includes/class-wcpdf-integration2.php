@@ -247,14 +247,27 @@ class wcpdf_Integration_Italian_add_on extends WooCommerce_Italian_add_on {
 	}
 	
 	public function wcpdf_template_files( $file_path, $type, $order ) {
+		global $wcpdf_IT;
 		if($type !== "receipt" || strpos($file_path, "receipt") === false) return $file_path;
 		
+		// first check if receipt is bundled with current template
 		$file = "receipt2.php";
 		$path = WPO_WCPDF()->settings->get_template_path( $file );
 		$file_path = "{$path}/{$file}";
 		if(file_exists( $file_path )) return($file_path);
 		$file_path = "{$path}/receipt.php";
 		if(file_exists( $file_path )) return($file_path);
+
+		// if premium template is selected, use that
+		if ( defined('WPO_WCPDF_TEMPLATES_VERSION') && version_compare( WPO_WCPDF_TEMPLATES_VERSION, '2.4', '>' ) ) {
+			// use setting, fallback to basename
+			$template_name = !empty($wcpdf_IT->options['template_name']) ? $wcpdf_IT->options['template_name'] : basename( WPO_WCPDF()->settings->get_template_path() );
+
+			$file_path = WooCommerce_Italian_add_on::$plugin_path . "templates/pdf/{$template_name}/receipt.php";
+			if(file_exists( $file_path )) return($file_path);
+		}
+
+		// use default (Simple)
 		$file_path = WooCommerce_Italian_add_on::$plugin_path . 'templates/pdf/Simple/receipt2.php';
 		if(file_exists( $file_path )) return($file_path);
 		$file_path = WooCommerce_Italian_add_on::$plugin_path . 'templates/pdf/Simple/receipt.php';
@@ -294,4 +307,3 @@ class wcpdf_Integration_Italian_add_on extends WooCommerce_Italian_add_on {
 }
 $wcpdf_it_add_on = new wcpdf_Integration_Italian_add_on();
 endif;
-?>
